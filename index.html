@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Registration Form</title>
+<style>
+:root{--accent1:#ff758c;--accent2:#7c88ff}
+body{font-family:Inter,system-ui,Arial;margin:0;background:linear-gradient(135deg,#a8edea,#fed6e3);color:#0f172a}
+.container{max-width:1100px;margin:30px auto;background:#fff;border-radius:14px;padding:22px;box-shadow:0 10px 30px rgba(11,22,70,0.06)}
+h1{text-align:center;background:linear-gradient(90deg,var(--accent1),#ff7eb3);-webkit-background-clip:text;color:transparent;margin:0 0 12px;font-size:26px}
+form{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+label{font-size:13px;color:#334155;margin-bottom:6px;display:block}
+input,select,textarea{padding:10px;border-radius:8px;border:1px solid #e6e9f2;background:#fbfdff;width:100%;box-sizing:border-box}
+textarea{min-height:70px}
+.actions{grid-column:span 2;display:flex;gap:10px;margin-top:8px}
+.btn{padding:10px 14px;border-radius:10px;border:0;cursor:pointer}
+.btn-primary{background:linear-gradient(90deg,var(--accent1),#ff7eb3);color:#fff}
+.btn-ghost{background:#eef2ff;border:1px solid #e6e9f2}
+.preview{max-width:120px;border-radius:8px}
+@media(max-width:720px){form{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Registration Form</h1>
+  <form id="regForm" enctype="multipart/form-data">
+    <div>
+      <label>First name</label>
+      <input name="first_name" required>
+    </div>
+    <div>
+      <label>Last name</label>
+      <input name="last_name" required>
+    </div>
+    <div>
+      <label>Email</label>
+      <input type="email" name="email" required>
+    </div>
+    <div>
+      <label>Password</label>
+      <input type="password" name="password" required>
+    </div>
+    <div>
+      <label>Date of birth</label>
+      <input type="date" name="dob">
+    </div>
+    <div>
+      <label>Gender</label>
+      <select name="gender">
+        <option value="">Select</option><option>Female</option><option>Male</option><option>Other</option>
+      </select>
+    </div>
+    <div><label>Phone</label><input name="phone"></div>
+    <div><label>Address line 1</label><input name="address1"></div>
+    <div><label>Address line 2</label><input name="address2"></div>
+    <div><label>City</label><input name="city"></div>
+    <div><label>State</label><input name="state"></div>
+    <div><label>Country</label><input name="country"></div>
+    <div><label>Zip / Postal</label><input name="zipcode"></div>
+    <div><label>Education</label><input name="education"></div>
+    <div><label>Occupation</label><input name="occupation"></div>
+    <div><label>Company</label><input name="company"></div>
+    <div><label>Industry</label><input name="industry"></div>
+    <div><label>Experience (years)</label><input name="experience"></div>
+    <div><label>Skills (comma separated)</label><input name="skills"></div>
+    <div><label>Hobbies</label><input name="hobbies"></div>
+    <div><label>Marital status</label><input name="marital_status"></div>
+    <div><label>Religion</label><input name="religion"></div>
+    <div><label>Blood group</label><input name="blood_group"></div>
+    <div><label>Emergency contact</label><input name="emergency_contact"></div>
+    <div><label>Website</label><input name="website"></div>
+    <div><label>LinkedIn</label><input name="linkedin"></div>
+
+    <div>
+      <label>Photo</label>
+      <input type="file" name="photo" id="photoInput" accept="image/*">
+      <img id="photoPreview" class="preview" style="display:none" alt="preview">
+    </div>
+
+    <div style="grid-column:span 2">
+      <label>About</label>
+      <textarea name="about"></textarea>
+    </div>
+
+    <div class="actions">
+      <button type="button" id="resetBtn" class="btn btn-ghost">Reset</button>
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </div>
+  </form>
+</div>
+
+<script>
+const form = document.getElementById('regForm');
+const resetBtn = document.getElementById('resetBtn');
+const photoInput = document.getElementById('photoInput');
+const photoPreview = document.getElementById('photoPreview');
+
+photoInput.addEventListener('change', (e)=>{
+  const f = e.target.files[0];
+  if (!f) { photoPreview.style.display='none'; return; }
+  photoPreview.src = URL.createObjectURL(f);
+  photoPreview.style.display = 'block';
+});
+
+resetBtn.addEventListener('click', ()=>{
+  form.reset();
+  photoPreview.style.display='none';
+  if (form.dataset.editId) delete form.dataset.editId;
+});
+
+form.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const fd = new FormData(form);
+  // if editing, include id
+  if (form.dataset.editId) fd.append('id', form.dataset.editId);
+  try {
+    const res = await fetch('backend.php?action=save', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.status) {
+      alert('Registration successful');
+      window.location.href = 'users.html';
+    } else {
+      alert('Failed: '+(data.error||'unknown'));
+    }
+  } catch(err) {
+    alert('Error: '+err.message);
+  }
+});
+</script>
+</body>
+</html>

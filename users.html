@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Users</title>
+<style>
+body{font-family:Inter,system-ui,Arial;margin:0;background:#fffafc}
+.container{max-width:1100px;margin:30px auto;background:#fff;border-radius:14px;padding:20px;box-shadow:0 8px 30px rgba(0,0,0,0.06)}
+h1{font-size:24px;text-align:center;color:#ff7eb3}
+.table{width:100%;border-collapse:collapse;margin-top:12px}
+th,td{padding:10px;border-bottom:1px solid #eee;text-align:left}
+th{background:linear-gradient(90deg,#ff758c,#ff7eb3);color:#fff}
+.preview{max-width:90px;border-radius:8px}
+.btn{padding:6px 10px;border-radius:8px;border:0;cursor:pointer}
+.btn-view{background:#4facfe;color:#fff}
+.btn-edit{background:#ffb74d;color:#fff}
+.btn-delete{background:#ff4e50;color:#fff}
+.add{background:linear-gradient(90deg,#ff758c,#ff7eb3);color:#fff;padding:8px 12px;border-radius:10px;border:0;cursor:pointer}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;display:none}
+.modal-inner{background:#fff;padding:18px;border-radius:12px;max-width:700px;width:95%;max-height:85vh;overflow:auto}
+.form-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.form-row > div{flex:1;min-width:180px}
+input,textarea,select{padding:8px;border-radius:8px;border:1px solid #ddd;width:100%;box-sizing:border-box}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Registered Users</h1>
+  <div style="text-align:right"><button class="add" onclick="location.href='index.html'">+ Add New</button></div>
+
+  <table class="table" id="usersTable">
+    <thead>
+      <tr><th>ID</th><th>Name</th><th>Email</th><th>Gender</th><th>Photo</th><th>Actions</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<!-- View / Edit Modal -->
+<div id="modal" class="modal">
+  <div class="modal-inner">
+    <div id="viewArea"></div>
+
+    <hr>
+    <h3>Edit User</h3>
+    <form id="editForm" enctype="multipart/form-data">
+      <input type="hidden" name="id" id="edit_id">
+      <div class="form-row">
+        <div><label>First name</label><input name="first_name" id="edit_first_name"></div>
+        <div><label>Last name</label><input name="last_name" id="edit_last_name"></div>
+      </div>
+      <div class="form-row">
+        <div><label>Email</label><input name="email" id="edit_email" type="email"></div>
+        <div><label>Password</label><input name="password" id="edit_password" type="text"></div>
+      </div>
+      <div class="form-row">
+        <div><label>DOB</label><input name="dob" id="edit_dob" type="date"></div>
+        <div><label>Gender</label>
+          <select name="gender" id="edit_gender"><option value="">Select</option><option>Female</option><option>Male</option><option>Other</option></select>
+        </div>
+      </div>
+
+      <!-- many fields -->
+      <div class="form-row">
+        <div><label>Phone</label><input name="phone" id="edit_phone"></div>
+        <div><label>Address1</label><input name="address1" id="edit_address1"></div>
+      </div>
+      <div class="form-row">
+        <div><label>Address2</label><input name="address2" id="edit_address2"></div>
+        <div><label>City</label><input name="city" id="edit_city"></div>
+      </div>
+      <div class="form-row">
+        <div><label>State</label><input name="state" id="edit_state"></div>
+        <div><label>Country</label><input name="country" id="edit_country"></div>
+      </div>
+      <div class="form-row">
+        <div><label>Zipcode</label><input name="zipcode" id="edit_zipcode"></div>
+        <div><label>Education</label><input name="education" id="edit_education"></div>
+      </div>
+      <div class="form-row">
+        <div><label>Occupation</label><input name="occupation" id="edit_occupation"></div>
+        <div><label>Company</label><input name="company" id="edit_company"></div>
+      </div>
+      <div class="form-row">
+        <div><label>Industry</label><input name="industry" id="edit_industry"></div>
+        <div><label>Experience</label><input name="experience" id="edit_experience"></div>
+      </div>
+      <div class="form-row">
+        <div><label>Skills</label><input name="skills" id="edit_skills"></div>
+        <div><label>Hobbies</label><input name="hobbies" id="edit_hobbies"></div>
+      </div>
+      <div class="form-row">
+        <div><label>Marital Status</label><input name="marital_status" id="edit_marital_status"></div>
+        <div><label>Religion</label><input name="religion" id="edit_religion"></div>
+      </div>
+      <div class="form-row">
+        <div><label>Blood Group</label><input name="blood_group" id="edit_blood_group"></div>
+        <div><label>Emergency Contact</label><input name="emergency_contact" id="edit_emergency_contact"></div>
+      </div>
+      <div class="form-row">
+        <div><label>Website</label><input name="website" id="edit_website"></div>
+        <div><label>LinkedIn</label><input name="linkedin" id="edit_linkedin"></div>
+      </div>
+
+      <div style="margin-top:10px">
+        <label>Replace Photo</label><input type="file" name="photo" id="edit_photo" accept="image/*">
+        <div id="currentPhoto" style="margin-top:8px"></div>
+      </div>
+
+      <div style="margin-top:12px;display:flex;gap:8px;">
+        <button type="button" onclick="submitEdit()" class="btn btn-edit">Save changes</button>
+        <button type="button" onclick="closeModal()" class="btn">Close</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+const API = 'backend.php';
+
+async function loadUsers(){
+  const res = await fetch(API + '?action=getAll');
+  const users = await res.json();
+  const tbody = document.querySelector('#usersTable tbody');
+  tbody.innerHTML = '';
+  users.forEach(u=>{
+    tbody.innerHTML += `<tr>
+      <td>${u.id}</td>
+      <td>${(u.first_name||'') + ' ' + (u.last_name||'')}</td>
+      <td>${u.email}</td>
+      <td>${u.gender||''}</td>
+      <td>${u.photo ? "<img class='preview' src='uploads/"+u.photo+"'>" : ''}</td>
+      <td>
+        <button class="btn btn-view" onclick="openView(${u.id})">View</button>
+        <button class="btn btn-edit" onclick="openEdit(${u.id})">Edit</button>
+        <button class="btn btn-delete" onclick="delUser(${u.id})">Delete</button>
+      </td>
+    </tr>`;
+  });
+}
+
+async function openView(id){
+  const res = await fetch(API + '?action=getOne&id=' + id);
+  const u = await res.json();
+  const area = document.getElementById('viewArea');
+  let html = '<h3>User Details</h3>';
+  for (const k in u) {
+    if (k === 'photo') {
+      if (u[k]) html += `<p><strong>Photo:</strong><br><img src="uploads/${u[k]}" style="max-width:200px;border-radius:8px"></p>`;
+      continue;
+    }
+    if (k === 'id' || k === 'created_at') continue;
+    html += `<p><strong>${k.replace(/_/g,' ')}:</strong> ${u[k]||''}</p>`;
+  }
+  area.innerHTML = html;
+  document.getElementById('modal').style.display = 'flex';
+  // hide edit section initially - we show edit below as same form populated
+}
+
+function closeModal(){
+  document.getElementById('modal').style.display = 'none';
+  // clear edit preview
+  document.getElementById('currentPhoto').innerHTML = '';
+  document.getElementById('editForm').reset();
+}
+
+async function openEdit(id){
+  const res = await fetch(API + '?action=getOne&id=' + id);
+  const u = await res.json();
+  document.getElementById('modal').style.display = 'flex';
+  // fill view area as details (optional)
+  document.getElementById('viewArea').innerHTML = '<h3>Editing user ID '+u.id+'</h3>';
+  // populate edit form fields
+  document.getElementById('edit_id').value = u.id || '';
+  document.getElementById('edit_first_name').value = u.first_name || '';
+  document.getElementById('edit_last_name').value = u.last_name || '';
+  document.getElementById('edit_email').value = u.email || '';
+  document.getElementById('edit_password').value = u.password || '';
+  document.getElementById('edit_dob').value = u.dob || '';
+  document.getElementById('edit_gender').value = u.gender || '';
+  document.getElementById('edit_phone').value = u.phone || '';
+  document.getElementById('edit_address1').value = u.address1 || '';
+  document.getElementById('edit_address2').value = u.address2 || '';
+  document.getElementById('edit_city').value = u.city || '';
+  document.getElementById('edit_state').value = u.state || '';
+  document.getElementById('edit_country').value = u.country || '';
+  document.getElementById('edit_zipcode').value = u.zipcode || '';
+  document.getElementById('edit_education').value = u.education || '';
+  document.getElementById('edit_occupation').value = u.occupation || '';
+  document.getElementById('edit_company').value = u.company || '';
+  document.getElementById('edit_industry').value = u.industry || '';
+  document.getElementById('edit_experience').value = u.experience || '';
+  document.getElementById('edit_skills').value = u.skills || '';
+  document.getElementById('edit_hobbies').value = u.hobbies || '';
+  document.getElementById('edit_marital_status').value = u.marital_status || '';
+  document.getElementById('edit_religion').value = u.religion || '';
+  document.getElementById('edit_blood_group').value = u.blood_group || '';
+  document.getElementById('edit_emergency_contact').value = u.emergency_contact || '';
+  document.getElementById('edit_website').value = u.website || '';
+  document.getElementById('edit_linkedin').value = u.linkedin || '';
+
+  if (u.photo) {
+    document.getElementById('currentPhoto').innerHTML = `<img src="uploads/${u.photo}" style="max-width:150px;border-radius:8px">`;
+  } else document.getElementById('currentPhoto').innerHTML = '';
+}
+
+async function submitEdit(){
+  const form = document.getElementById('editForm');
+  const fd = new FormData(form);
+  // append other fields that exist in form
+  // send to same backend save endpoint; backend will update when id present
+  const res = await fetch(API + '?action=save', { method: 'POST', body: fd });
+  const data = await res.json();
+  if (data.status) {
+    alert('Updated');
+    closeModal();
+    loadUsers();
+  } else {
+    alert('Update failed');
+  }
+}
+
+async function delUser(id){
+  if (!confirm('Delete this user?')) return;
+  await fetch(API + '?action=delete&id=' + id);
+  loadUsers();
+}
+
+loadUsers();
+</script>
+</body>
+</html>
